@@ -206,28 +206,28 @@ ValuePack UnitConvertor::fromString(const std::string &target)
     return generateValuePack(valueStr,ratioStr,unitStr);
 }
 
-ValuePack UnitConvertor::convertTo(ValuePack pack, DecimalRatio newRatio)
+ValuePack UnitConvertor::ratioTo(ValuePack pack, DecimalRatio newRatio)
 {
     //将数量级限制到这个数据包的单位所对应的数量级范围内
     newRatio = std::min(pack.property().maxRatio,newRatio);
     newRatio = std::max(pack.property().minRatio,newRatio);
 
-    double value = pack.value() * Ratio * (pack.ratio(),newRatio);
+    double value = pack.value() * std::pow(Ratio,pack.ratio() - newRatio);
     return ValuePack(value,newRatio,pack.property().unit);
 }
 
-ValuePack UnitConvertor::convertTo(const std::string &str, DecimalRatio newRatio)
+ValuePack UnitConvertor::ratioTo(const std::string &str, DecimalRatio newRatio)
 {
     ValuePack pack = UnitConvertor::fromString(str);
-    return UnitConvertor::convertTo(pack,newRatio);
+    return UnitConvertor::ratioTo(pack,newRatio);
 }
 
 ValuePack UnitConvertor::proper(ValuePack pack)
 {
     if(pack.value() > 1000)
-        return proper( ValuePack(pack.value()/1000, DecimalRatio(pack.ratio()-1), pack.property().unit) );
+        return proper( ValuePack(pack.value()/Ratio, DecimalRatio(pack.ratio() + 1), pack.property().unit) );
     else if(pack.value() < 1)
-        return proper( ValuePack(pack.value()*1000, DecimalRatio(pack.ratio()+1), pack.property().unit) );
+        return proper( ValuePack(pack.value()*Ratio, DecimalRatio(pack.ratio() - 1), pack.property().unit) );
     else
         return pack;
 }
@@ -250,8 +250,7 @@ ValuePack UnitConvertor::proper(const std::string &str)
 
 ValuePack::ValuePack()
 {
-    ValuePack pack;
-    pack+10;
+
 }
 
 ValuePack::ValuePack(double value, DecimalRatio ratio, DecimalUnit unit)

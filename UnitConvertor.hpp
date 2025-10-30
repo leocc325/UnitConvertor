@@ -23,10 +23,10 @@ namespace UnitConvertor
     ValuePack fromString(const std::string& target);
 
     ///将当前数据的数量级转换为newRatio表示的数据
-    ValuePack convertTo(ValuePack pack, DecimalRatio newRatio);
+    ValuePack ratioTo(ValuePack pack, DecimalRatio newRatio);
 
     ///将当前数据字符串的数量级转换为newRatio表示的数据
-    ValuePack convertTo(const std::string& str, DecimalRatio newRatio);
+    ValuePack ratioTo(const std::string& str, DecimalRatio newRatio);
 
     ///将数值自动转换为一个恰当单位表示的数值(1～999之间的值)
     ValuePack proper(ValuePack pack);
@@ -95,7 +95,7 @@ public:
         ValuePack tmpPack{};
         if(pack.m_Property.unit == this->m_Property.unit)
         {
-            tmpPack = UnitConvertor::convertTo(pack,this->m_Ratio);
+            tmpPack = UnitConvertor::ratioTo(pack,this->m_Ratio);
             return ValuePack(this->m_Value + tmpPack.m_Value,this->m_Ratio,this->m_Property.unit);
         }
         return tmpPack;
@@ -107,7 +107,7 @@ public:
         ValuePack tmpPack{};
         if(pack.m_Property.unit == this->m_Property.unit)
         {
-            tmpPack = UnitConvertor::convertTo(pack,this->m_Ratio);
+            tmpPack = UnitConvertor::ratioTo(pack,this->m_Ratio);
             return ValuePack(this->m_Value - tmpPack.m_Value,this->m_Ratio,this->m_Property.unit);
         }
         return tmpPack;
@@ -147,8 +147,8 @@ public:
         return std::to_string(m_Value) + UC::DecimalRatioString[m_Ratio] + UC::DecimalUnitString[m_Property.unit];
     }
 
-    std::size_t toInt() const noexcept {
-        return std::round(m_Value);
+    long long toInt() const {
+        return std::llround(m_Value);
     }
 private:
     double m_Value = 0;
