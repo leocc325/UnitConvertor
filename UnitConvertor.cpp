@@ -13,6 +13,13 @@ static std::unordered_map<std::string,std::size_t> GlobalRatioMap;
 static std::unordered_map<std::string,std::size_t> GlobalUnitMap;
 static const double Ratio = 1000;
 
+std::string toLower(const std::string& str)
+{
+    std::string result = str;
+    std::transform(result.begin(), result.end(), result.begin(),[](unsigned char c) { return std::tolower(c); });
+    return result;
+}
+
 void initRatioMap()
 {
     for(int i = 0; i < UC::RatioNum; i++)
@@ -24,9 +31,9 @@ void initRatioMap()
 void initUnitMap()
 {
     for(int i = 0; i < UC::UnitNum; i++)
-        {
-            GlobalUnitMap.emplace(DecimalUnitString[i],i);
-        }
+    {
+        GlobalUnitMap.emplace(toLower(DecimalUnitString[i]),i);//查找单位时转换为小写
+    }
 }
 
 ///获取比例字符串和枚举值的映射关系
@@ -50,8 +57,8 @@ const std::string escapeRegex(const std::string &str)
     for (char c : str)
     {
         if (c == '.' || c == '*' || c == '+' || c == '?' || c == '^' ||
-                c == '$' || c == '|' || c == '(' || c == ')' || c == '[' ||
-                c == ']' || c == '{' || c == '}' || c == '\\')
+            c == '$' || c == '|' || c == '(' || c == ')' || c == '[' ||
+            c == ']' || c == '{' || c == '}' || c == '\\')
         {
             result += '\\';
         }
@@ -85,26 +92,26 @@ const std::string generateRegexString(const std::string *array, const std::size_
         }
     }
 
-    std::ostringstream pattern;
-    pattern << "(";
+    std::string pattern;
+    pattern.append("(");
 
     // 构建正则表达式字符串
     for (auto it = stringSet.begin(); it != stringSet.end(); ++it)
     {
         if (it != stringSet.begin())
-            pattern << "|";
+            pattern.append("|");
 
-        pattern << escapeRegex(*it);
+        pattern.append(escapeRegex(*it));
     }
-    pattern << ")?";
-
-    return pattern.str();
+    pattern.append( ")+");
+    return pattern;
 }
 
-///返回一个查找比例字符串的正则表达式,根据比例字符串数组自动生成一个用于查找比例字符串的正则表达式,更新比例字符串数组之后正则表达式会自动更新
+///返回一个查找比例字符串的正则表达式,根据比例字符串数组自动生成一个用于查找比例字符串的正则表达式,更新比例字符串数组之后正则表达式会自动更新(quf)
 const std::regex& ratioRegex()
 {
-    static const std::regex instance(generateRegexString(DecimalRatioString,RatioNum),std::regex_constants::icase);
+    //数量级必须区分大小写,因为m和M会重复
+    static const std::regex instance(generateRegexString(DecimalRatioString,RatioNum)/*,std::regex_constants::icase*/);
     return instance;
 }
 
@@ -136,7 +143,7 @@ ValuePack generateValuePack(const std::string& valueStr,const std::string& ratio
     }
 
     try {
-        unit = static_cast<DecimalUnit>(unitMap().at(unitStr));
+        unit = static_cast<DecimalUnit>(unitMap().at(toLower(unitStr)));//查找单位时转换为小写
     } catch (std::out_of_range) {
         unit = UnitConvertor::Null;
     }
@@ -167,34 +174,32 @@ ValuePack UnitConvertor::fromString(const std::string &target)
     const char* begin = target.data();
     const char* end = begin + target.length();
 
-    //先查找数字对应的字符串
+    //先查找数字对应的字符串,允许查找结果为空,查找失败时字符串会保持为空
     const std::regex& decimalReg = decimalRegex();
     std::cregex_iterator decimalBeg(begin,end,decimalReg);
     std::cregex_iterator decimalEnd;
-    if(std::distance(decimalBeg,decimalEnd) == 1)
+    if(std::distance(decimalBeg,decimalEnd) == 1)//如果查找到的数字字符串不等于1(多余或者少于1都认为是错误的,此时让值保持为默认值0)
     {
-        //如果查找到的数字字符串不等于1(多余或者少于1都认为是错误的,此时让值保持为默认值0)
         valueStr = decimalBeg->str();
-        begin += decimalBeg->size();//移动指针缩小查找范围
+        begin += decimalBeg->str().length();//移动指针缩小查找范围
     }
 
     //再查找单位对应的字符串
     const std::regex& unitReg = unitRegex();
     std::cregex_iterator unitBeg(begin,end,unitReg);
     std::cregex_iterator unitEnd;
-    if(std::distance(unitBeg,unitEnd) == 1)
+    if(std::distance(unitBeg,unitEnd) == 1)//如果查找到的数字字符串不等于1(多余或者少于1都认为是错误的,此时让值保持为默认值0)
     {
-        //允许单位为空,所以当单位查找失败时字符串会保持为空
         unitStr = unitBeg->str();
-        end -= unitBeg->size();//再次缩写查找范围
+        end -= unitBeg->str().length();//再次缩写查找范围
     }
 
     const std::regex& ratioReg = ratioRegex();
     std::cregex_iterator ratioBeg(begin,end,ratioReg);
     std::cregex_iterator ratioEnd;
-    if(std::distance(ratioBeg,ratioEnd) == 1)
+    if(std::distance(ratioBeg,ratioEnd) == 1)//如果查找到的数字字符串不等于1(多余或者少于1都认为是错误的,此时让值保持为默认值0)
     {
-        ratioStr = unitBeg->str();
+        ratioStr = ratioBeg->str();
     }
 
     //最后将查找到的三个字符串转换为数据包
