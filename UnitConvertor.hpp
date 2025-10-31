@@ -33,9 +33,25 @@ namespace UnitConvertor
 
     ///将字符串自动转换为一个恰当单位表示的数值(1～999之间的值)
     ValuePack proper(const std::string& str);
-};
 
-namespace UC = UnitConvertor;
+    ///将ValuePack转换为字符串,不控制格式
+    std::string toString(const ValuePack& pack);
+
+    ///将ValuePack转换为字符串,当fixedDecimal为true时精确到小数点后precision位,否则位保留fixedDecimal位有效数字
+    std::string toFormatString(const ValuePack& pack,int precision,bool fixedDecimal = true);
+
+    ///将ValuePack转换为字符串同时确保整数部分和小数部分长度固定,长度不足时填充给定字符
+    std::string toFormatString(const ValuePack& pack,int totalLeng,int decimalLen,char fill = '0');
+
+    ///将ValuePack转换为科学计数法的字符串,不控制格式
+    std::string toScientificString(const ValuePack& pack);
+
+    ///将ValuePack转换为科学计数法的字符串,小数点后面保留precision位
+    std::string toScientificString(const ValuePack& pack,int precision);
+
+    ///将ValuePack转换为整数
+    long long toInt(const ValuePack& pack);
+};
 
 ///描述当前单位的最大数量级和最小数量级
 struct ValuePackProperty
@@ -49,9 +65,14 @@ class ValuePack
 {
     //这个类只有数值成员变量,无需自定义拷贝和移动函数,太懒了不想重载+=、-=、*=、/=这些运算符,有需要的时候再加
 public:
-    ValuePack();
+    ValuePack(){}
 
-    ValuePack(double value,UC::DecimalRatio ratio,UC::DecimalUnit unit);
+    ValuePack(double value,UnitConvertor::DecimalRatio ratio,UnitConvertor::DecimalUnit unit)
+    {
+        this->m_Value = value;
+        this->m_Ratio = ratio;
+        this->m_Property = UnitConvertor::generateValuePackProperty(unit);
+    }
 
     bool operator==(const ValuePack& other) const noexcept
     {
@@ -115,44 +136,15 @@ public:
 
     operator double() const noexcept { return m_Value; }
 
-    void setValue(double value) noexcept{
-        this->m_Value = value;
-    }
+    double value() const noexcept{return this->m_Value;}
 
-    double value() const noexcept{
-        return this->m_Value;
-    }
+    UnitConvertor::DecimalRatio ratio() const noexcept{return this->m_Ratio;}
 
-    void setRatio(UC::DecimalRatio ratio) noexcept{
-        this->m_Ratio = ratio;
-    }
+    ValuePackProperty property() const noexcept{return this->m_Property;}
 
-    UC::DecimalRatio ratio() const noexcept{
-        return this->m_Ratio;
-    }
-
-    ValuePackProperty property() const noexcept{
-        return this->m_Property;
-    }
-
-    std::string toString(){
-        return std::to_string(m_Value) + UC::DecimalRatioString[m_Ratio] + UC::DecimalUnitString[m_Property.unit];
-    }
-
-    std::string toFormatString(){
-        return std::to_string(m_Value) + UC::DecimalRatioString[m_Ratio] + UC::DecimalUnitString[m_Property.unit];
-    }
-
-    std::string toScientificString(){
-        return std::to_string(m_Value) + UC::DecimalRatioString[m_Ratio] + UC::DecimalUnitString[m_Property.unit];
-    }
-
-    long long toInt() const {
-        return std::llround(m_Value);
-    }
 private:
     double m_Value = 0;
-    UC::DecimalRatio m_Ratio = UC::One;
+    UnitConvertor::DecimalRatio m_Ratio = UnitConvertor::One;
     ValuePackProperty m_Property;
 };
 

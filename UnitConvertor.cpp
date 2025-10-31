@@ -1,5 +1,6 @@
 ﻿#include "UnitConvertor.hpp"
 
+#include <iomanip>
 #include <regex>
 #include <set>
 #include <unordered_map>
@@ -22,7 +23,7 @@ std::string toLower(const std::string& str)
 
 void initRatioMap()
 {
-    for(int i = 0; i < UC::RatioNum; i++)
+    for(int i = 0; i < UnitConvertor::RatioNum; i++)
     {
         GlobalRatioMap.emplace(DecimalRatioString[i],i);
     }
@@ -30,7 +31,7 @@ void initRatioMap()
 
 void initUnitMap()
 {
-    for(int i = 0; i < UC::UnitNum; i++)
+    for(int i = 0; i < UnitConvertor::UnitNum; i++)
     {
         GlobalUnitMap.emplace(toLower(DecimalUnitString[i]),i);//查找单位时转换为小写
     }
@@ -125,7 +126,25 @@ const std::regex& unitRegex()
 ///返回查找数值字符串的正则表达式[暂时还不支持科学计数法]
 const std::regex& decimalRegex()
 {
+    //如果支持正则表达式之后还要修改数值转换部分代码,正则表达式匹配科学计数法会产生两部分结果
+    //static const std::regex reg(R"(^[-+]?(\d+\.\d+|\d+\.?|\.\d+)([eE][-+]?\d+)?$)");
+
     static const std::regex  reg(R"(-?\d*\.?\d+)",std::regex_constants::icase);
+    return reg;
+}
+
+///判断字符串小数部分是否全部都是0,如果小数点后面全部都是0则删除
+///这样就不需要区分ValuePack的m_Value原本是浮点值还是整数值,避免整数值传入ValuePack转字符串之后后面有0
+const std::regex& fractionalRegex()
+{
+    static const std::regex  reg(R"(\.0+$)");
+    return reg;
+}
+
+///判断科学计数法字符串的小数部分是否全部为0
+const std::regex& scientificRegex()
+{
+    static const std::regex  reg(R"(\.0+e)",std::regex_constants::icase);
     return reg;
 }
 
@@ -156,7 +175,7 @@ const ValuePackProperty UnitConvertor::generateValuePackProperty(DecimalUnit uni
     switch (unit)
     {
     case Freq:return ValuePackProperty{Giga,One,Freq} ;break;
-    case Time:return ValuePackProperty{One,Nano,Freq} ;break;
+    case Time:return ValuePackProperty{One,Nano,Time} ;break;
     case Ampl:return ValuePackProperty{Kilo,Micro,Ampl} ;break;
     case Voltage:return ValuePackProperty{Kilo,Micro,Voltage} ;break;
     case Current:return ValuePackProperty{Kilo,Micro,Current} ;break;
@@ -234,28 +253,53 @@ ValuePack UnitConvertor::proper(ValuePack pack)
 
 ValuePack UnitConvertor::proper(const std::string &str)
 {
-    ValuePack pack = UC::fromString(str);
+    ValuePack pack = UnitConvertor::fromString(str);
     return proper(pack);
 }
 
-/**********************************************************************
-* @name:   ValuePack
-* @brief:   以下是ValuePack类的成员函数定义
-* @param:   无
-* @return:  无
-* @author:  lcc
-* @date:    2025/10/29
-* @notes:   无
-***********************************************************************/
-
-ValuePack::ValuePack()
+std::string UnitConvertor::toString(const ValuePack &pack)
 {
-
+    std::ostringstream oss;
+    oss  <<std::fixed << pack.value();
+    std::string s = std::regex_replace(oss.str(),fractionalRegex(),"");
+    return s + " " + UnitConvertor::DecimalRatioString[pack.ratio()] + UnitConvertor::DecimalUnitString[pack.property().unit];
 }
 
-ValuePack::ValuePack(double value, DecimalRatio ratio, DecimalUnit unit)
+std::string UnitConvertor::toFormatString(const ValuePack &pack, int precision,bool fixedDecimal )
 {
-    this->m_Value = value;
-    this->m_Ratio = ratio;
-    this->m_Property = UnitConvertor::generateValuePackProperty(unit);
+    std::ostringstream oss;
+    if(fixedDecimal)
+        oss << std::fixed << std::setprecision(precision) << pack.value();
+    else
+        oss << std::setprecision(precision) << pack.value();
+    std::string s = std::regex_replace(oss.str(),fractionalRegex(),"");
+   return s + " " + UnitConvertor::DecimalRatioString[pack.ratio()] + UnitConvertor::DecimalUnitString[pack.property().unit];
+}
+
+std::string UnitConvertor::toFormatString(const ValuePack &pack, int totalLeng, int decimalLen, char fill)
+{
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(decimalLen) << std::setw(totalLeng) << std::setfill(fill) << pack.value();
+    std::string s = std::regex_replace(oss.str(),fractionalRegex(),"");
+    return s + " " + UnitConvertor::DecimalRatioString[pack.ratio()] + UnitConvertor::DecimalUnitString[pack.property().unit];
+}
+
+std::string UnitConvertor::toScientificString(const ValuePack &pack)
+{
+    std::ostringstream oss;
+    oss << std::scientific  << pack.value();
+    std::string s = std::regex_replace(oss.str(),scientificRegex(),"e");
+    return s + " " + UnitConvertor::DecimalRatioString[pack.ratio()] + UnitConvertor::DecimalUnitString[pack.property().unit];
+}
+
+std::string UnitConvertor::toScientificString(const ValuePack &pack, int precision)
+{
+    std::ostringstream oss;
+    oss << std::scientific  << std::setprecision(precision) << pack.value();
+    std::string s = std::regex_replace(oss.str(),scientificRegex(),"e");
+    return s + " " + UnitConvertor::DecimalRatioString[pack.ratio()] + UnitConvertor::DecimalUnitString[pack.property().unit];
+}
+long long UnitConvertor::toInt(const ValuePack& pack)
+{
+    return std::llround(pack.value());
 }
