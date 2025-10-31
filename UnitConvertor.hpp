@@ -5,7 +5,7 @@
 #include <cmath>
 
 class ValuePack;
-struct ValuePackProperty;
+struct UnitProperty;
 namespace UnitConvertor
 {
     enum DecimalRatio{Nano,Micro,Milli,One,Kilo,Mega,Giga,RatioNum};
@@ -17,7 +17,7 @@ namespace UnitConvertor
     static const std::string DecimalUnitString[UnitNum] = {"" , "Hz" , "s" , "Vpp" , "V" , "A" , "°"};
 
     ///这个函数返回一个单位对应的属性:属性包括这个单位所对应的最大数量级、最小数量级、单位枚举
-    static const ValuePackProperty generateValuePackProperty(DecimalUnit unit) noexcept;
+    static const UnitProperty generateUnitProperty(DecimalUnit unit) noexcept;
 
     ///将一个字符串转换为数据包
     ValuePack fromString(const std::string& target);
@@ -53,12 +53,14 @@ namespace UnitConvertor
     long long toInt(const ValuePack& pack);
 };
 
-///描述当前单位的最大数量级和最小数量级
-struct ValuePackProperty
+///描述当前单位的最大数量级和最小数量级以及每一个数量级之间的进制
+struct UnitProperty
 {
     UnitConvertor::DecimalRatio maxRatio = UnitConvertor::One;
     UnitConvertor::DecimalRatio minRatio = UnitConvertor::One;
     UnitConvertor::DecimalUnit unit = UnitConvertor::Null;
+    double Exp = 1000;
+    //把进制作为成员变量而不是全局变量以以获得更高的灵活性,比如kV和V之间的进制是1000,km²和m²的进制1000000
 };
 
 class ValuePack
@@ -71,7 +73,7 @@ public:
     {
         this->m_Value = value;
         this->m_Ratio = ratio;
-        this->m_Property = UnitConvertor::generateValuePackProperty(unit);
+        this->m_Property = UnitConvertor::generateUnitProperty(unit);
     }
 
     bool operator==(const ValuePack& other) const noexcept
@@ -140,12 +142,12 @@ public:
 
     UnitConvertor::DecimalRatio ratio() const noexcept{return this->m_Ratio;}
 
-    ValuePackProperty property() const noexcept{return this->m_Property;}
+    UnitProperty property() const noexcept{return this->m_Property;}
 
 private:
     double m_Value = 0;
     UnitConvertor::DecimalRatio m_Ratio = UnitConvertor::One;
-    ValuePackProperty m_Property;
+    UnitProperty m_Property;
 };
 
 #endif // UNITCONVERTOR_HPP

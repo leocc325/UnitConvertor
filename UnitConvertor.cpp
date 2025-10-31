@@ -12,7 +12,6 @@ static std::once_flag ratioMapOnce;
 static std::once_flag unitMapOnce;
 static std::unordered_map<std::string,std::size_t> GlobalRatioMap;
 static std::unordered_map<std::string,std::size_t> GlobalUnitMap;
-static const double Ratio = 1000;
 
 std::string toLower(const std::string& str)
 {
@@ -170,17 +169,17 @@ ValuePack generateValuePack(const std::string& valueStr,const std::string& ratio
     return ValuePack(value,ratio,unit);
 }
 
-const ValuePackProperty UnitConvertor::generateValuePackProperty(DecimalUnit unit) noexcept
+const UnitProperty UnitConvertor::generateUnitProperty(DecimalUnit unit) noexcept
 {
     switch (unit)
     {
-    case Freq:return ValuePackProperty{Giga,One,Freq} ;break;
-    case Time:return ValuePackProperty{One,Nano,Time} ;break;
-    case Ampl:return ValuePackProperty{Kilo,Micro,Ampl} ;break;
-    case Voltage:return ValuePackProperty{Kilo,Micro,Voltage} ;break;
-    case Current:return ValuePackProperty{Kilo,Micro,Current} ;break;
-    case Phase:return ValuePackProperty{One,One,Phase} ;break;
-    default:return ValuePackProperty{} ;
+    case Freq:return UnitProperty{Giga,One,Freq,1000} ;break;
+    case Time:return UnitProperty{One,Nano,Time,1000} ;break;
+    case Ampl:return UnitProperty{Kilo,Micro,Ampl,1000} ;break;
+    case Voltage:return UnitProperty{Kilo,Micro,Voltage,1000} ;break;
+    case Current:return UnitProperty{Kilo,Micro,Current,1000} ;break;
+    case Phase:return UnitProperty{One,One,Phase,1000} ;break;
+    default:return UnitProperty{} ;
     }
 }
 
@@ -231,7 +230,7 @@ ValuePack UnitConvertor::ratioTo(ValuePack pack, DecimalRatio newRatio)
     newRatio = std::min(pack.property().maxRatio,newRatio);
     newRatio = std::max(pack.property().minRatio,newRatio);
 
-    double value = pack.value() * std::pow(Ratio,pack.ratio() - newRatio);
+    double value = pack.value() * std::pow(pack.property().Exp , pack.ratio() - newRatio);
     return ValuePack(value,newRatio,pack.property().unit);
 }
 
@@ -244,9 +243,9 @@ ValuePack UnitConvertor::ratioTo(const std::string &str, DecimalRatio newRatio)
 ValuePack UnitConvertor::proper(ValuePack pack)
 {
     if(pack.value() > 1000)
-        return proper( ValuePack(pack.value()/Ratio, DecimalRatio(pack.ratio() + 1), pack.property().unit) );
+        return proper( ValuePack(pack.value()/pack.property().Exp, DecimalRatio(pack.ratio() + 1), pack.property().unit) );
     else if(pack.value() < 1)
-        return proper( ValuePack(pack.value()*Ratio, DecimalRatio(pack.ratio() - 1), pack.property().unit) );
+        return proper( ValuePack(pack.value()*pack.property().Exp, DecimalRatio(pack.ratio() - 1), pack.property().unit) );
     else
         return pack;
 }
