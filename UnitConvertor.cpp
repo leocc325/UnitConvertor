@@ -183,7 +183,7 @@ const UnitProperty UnitConvertor::generateUnitProperty(DecimalUnit unit) noexcep
     }
 }
 
-ValuePack UnitConvertor::fromString(const std::string &target)
+ValuePack UnitConvertor::fromString(const std::string &target,DecimalUnit unit)
 {
     std::string valueStr = "0";
     std::string ratioStr;
@@ -203,13 +203,20 @@ ValuePack UnitConvertor::fromString(const std::string &target)
     }
 
     //再查找单位对应的字符串
-    const std::regex& unitReg = unitRegex();
-    std::cregex_iterator unitBeg(begin,end,unitReg);
-    std::cregex_iterator unitEnd;
-    if(std::distance(unitBeg,unitEnd) == 1)//如果查找到的数字字符串不等于1(多余或者少于1都认为是错误的,此时让值保持为默认值0)
+    if(std::abs(unit) < DecimalUnit::UnitNum)//避免传入的值超出枚举范围,使用static_cast是有可能的
     {
-        unitStr = unitBeg->str();
-        end -= unitBeg->str().length();//再次缩写查找范围
+        unitStr = DecimalUnitString[unit];
+    }
+    else
+    {
+        const std::regex& unitReg = unitRegex();
+        std::cregex_iterator unitBeg(begin,end,unitReg);
+        std::cregex_iterator unitEnd;
+        if(std::distance(unitBeg,unitEnd) == 1)//如果查找到的数字字符串不等于1(多余或者少于1都认为是错误的,此时让值保持为默认值0)
+        {
+            unitStr = unitBeg->str();
+            end -= unitBeg->str().length();//再次缩写查找范围
+        }
     }
 
     const std::regex& ratioReg = ratioRegex();

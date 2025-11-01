@@ -19,8 +19,8 @@ namespace UnitConvertor
     ///这个函数返回一个单位对应的属性:属性包括这个单位所对应的最大数量级、最小数量级、单位枚举
     static const UnitProperty generateUnitProperty(DecimalUnit unit) noexcept;
 
-    ///将一个字符串转换为数据包
-    ValuePack fromString(const std::string& target);
+    ///将一个字符串转换为数据包,如果在调用这个函数的时候指定单位类型执行效率将会更高
+    ValuePack fromString(const std::string& target,DecimalUnit unit = DecimalUnit::UnitNum);
 
     ///将当前数据的数量级转换为newRatio表示的数据
     ValuePack ratioTo(ValuePack pack, DecimalRatio newRatio);
@@ -52,6 +52,7 @@ namespace UnitConvertor
     ///将ValuePack转换为整数
     long long toInt(const ValuePack& pack);
 };
+namespace Uc =  UnitConvertor;
 
 ///描述当前单位的最大数量级和最小数量级以及每一个数量级之间的进制
 struct UnitProperty
