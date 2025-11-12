@@ -179,6 +179,8 @@ const UnitProperty UnitConvertor::generateUnitProperty(DecimalUnit unit) noexcep
     case Voltage:return UnitProperty{Kilo,Micro,Voltage,1000} ;break;
     case Current:return UnitProperty{Kilo,Micro,Current,1000} ;break;
     case Phase:return UnitProperty{One,One,Phase,1000} ;break;
+    case SampRate:return UnitProperty{Giga,One,SampRate,1000} ;break;
+    case VolArea:return UnitProperty{Giga,One,VolArea,1000} ;break;
     default:return UnitProperty{} ;
     }
 }

@@ -12,9 +12,9 @@ namespace UnitConvertor
 
     static const std::string DecimalRatioString[RatioNum] = {"n" , "u" , "m" , "" , "k" , "M" , "G"};
 
-    enum DecimalUnit{Null,Freq,Time,Ampl,Voltage,Current,Phase,UnitNum};
+    enum DecimalUnit{Null,Freq,Time,Ampl,Voltage,Current,Phase,SampRate,VolArea,UnitNum};
 
-    static const std::string DecimalUnitString[UnitNum] = {"" , "Hz" , "s" , "Vpp" , "V" , "A" , "°"};
+    static const std::string DecimalUnitString[UnitNum] = {"" , "Hz" , "s" , "Vpp" , "V" , "A" , "°","Sa/s","V*s"};
 
     ///这个函数返回一个单位对应的属性:属性包括这个单位所对应的最大数量级、最小数量级、单位枚举
     static const UnitProperty generateUnitProperty(DecimalUnit unit) noexcept;
