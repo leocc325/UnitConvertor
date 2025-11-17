@@ -251,9 +251,9 @@ ValuePack UnitConvertor::ratioTo(const std::string &str, DecimalRatio newRatio)
 
 ValuePack UnitConvertor::proper(ValuePack pack)
 {
-    if(pack.value() > 1000)
+    if(std::abs(pack.value()) > 1000)
         return proper( ValuePack(pack.value()/pack.property().Exp, DecimalRatio(pack.ratio() + 1), pack.property().unit) );
-    else if(pack.value() < 1)
+    else if(std::abs(pack.value()) < 1)
         return proper( ValuePack(pack.value()*pack.property().Exp, DecimalRatio(pack.ratio() - 1), pack.property().unit) );
     else
         return pack;
