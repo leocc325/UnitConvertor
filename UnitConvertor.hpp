@@ -37,6 +37,12 @@ namespace UnitConvertor
     ///将字符串自动转换为一个恰当单位表示的数值(1～999之间的值)
     ValuePack proper(const std::string& str);
 
+    ///获取数字部分字符串
+    std::string numericPart(const ValuePack& pack);
+
+    ///获取单位部分字符串
+    std::string unitPart(const ValuePack& pack);
+
     ///将ValuePack转换为字符串,不控制格式
     std::string toString(const ValuePack& pack);
 
@@ -129,11 +135,7 @@ public:
         return tmpPack;
     }
 
-    ValuePack& operator = (double value) noexcept
-    {
-        m_Value = value;
-        return *this;
-    }
+    operator double() const noexcept {  return m_Value;  }
 
     bool operator == (const ValuePack& other) const noexcept
     {
@@ -158,6 +160,12 @@ public:
         return *this;
     }
 
+    ///获取数字部分字符串
+    std::string numericalPart(){  return UnitConvertor::numericPart(*this);  }
+
+    ///获取单位部分字符串
+    std::string unitPart(){  return UnitConvertor::unitPart(*this);  }
+
     ///将ValuePack转换为字符串,不控制格式
     std::string toString(){  return UnitConvertor::toString(*this);  }
 
@@ -176,7 +184,7 @@ public:
     ///将ValuePack转换为整数
     long long toInt(){  return UnitConvertor::toInt(*this);  }
 
-    operator double() const noexcept {  return m_Value;  }
+    void setValue(double value) noexcept {  this->m_Value = value; }
 
     double value() const noexcept{  return this->m_Value;  }
 

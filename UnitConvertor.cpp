@@ -272,6 +272,19 @@ ValuePack UnitConvertor::proper(const std::string &str)
     return proper(pack);
 }
 
+std::string UnitConvertor::numericPart(const ValuePack &pack)
+{
+    std::ostringstream oss;
+    oss  <<std::fixed << pack.value();
+    std::string s = std::regex_replace(oss.str(),fractionalRegex(),"");
+    return s;
+}
+
+std::string UnitConvertor::unitPart(const ValuePack &pack)
+{
+    return UnitConvertor::DecimalRatioString[pack.ratio()] + UnitConvertor::DecimalUnitString[pack.property().unit];
+}
+
 std::string UnitConvertor::toString(const ValuePack &pack)
 {
     std::ostringstream oss;
