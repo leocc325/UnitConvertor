@@ -181,8 +181,17 @@ const UnitProperty UnitConvertor::generateUnitProperty(DecimalUnit unit) noexcep
     case Phase:return UnitProperty{One,One,Phase,1000} ;break;
     case SampRate:return UnitProperty{Giga,One,SampRate,1000} ;break;
     case VolArea:return UnitProperty{Giga,One,VolArea,1000} ;break;
+    case Percent:return UnitProperty{One,One,Percent,1} ;break;
     default:return UnitProperty{} ;
     }
+}
+
+DecimalRatio UnitConvertor::limitRatio(DecimalUnit unit, DecimalRatio ratio)
+{
+    UnitProperty p = UnitConvertor::generateUnitProperty(unit);
+    ratio = std::min(p.maxRatio,ratio);
+    ratio = std::max(p.minRatio,ratio);
+    return ratio;
 }
 
 ValuePack UnitConvertor::fromString(const std::string &target,DecimalUnit unit)
@@ -235,9 +244,7 @@ ValuePack UnitConvertor::fromString(const std::string &target,DecimalUnit unit)
 
 ValuePack UnitConvertor::ratioTo(ValuePack pack, DecimalRatio newRatio)
 {
-    //将数量级限制到这个数据包的单位所对应的数量级范围内
-    newRatio = std::min(pack.property().maxRatio,newRatio);
-    newRatio = std::max(pack.property().minRatio,newRatio);
+    newRatio = limitRatio(pack.unit(),newRatio);
 
     double value = pack.value() * std::pow(pack.property().Exp , pack.ratio() - newRatio);
     return ValuePack(value,newRatio,pack.property().unit);
