@@ -258,10 +258,23 @@ ValuePack UnitConvertor::ratioTo(const std::string &str, DecimalRatio newRatio)
 
 ValuePack UnitConvertor::proper(ValuePack pack)
 {
+    if(pack.value() == 0)
+        return pack;
+
     if(std::abs(pack.value()) > 1000)
-        return proper( ValuePack(pack.value()/pack.property().Exp, DecimalRatio(pack.ratio() + 1), pack.property().unit) );
+    {
+        if(pack.ratio() == Uc::Giga)//已经到达最大数量级单位就返回
+            return pack;
+        else
+            return proper( ValuePack(pack.value()/pack.property().Exp, DecimalRatio(pack.ratio() + 1), pack.property().unit) );
+    }
     else if(std::abs(pack.value()) < 1)
-        return proper( ValuePack(pack.value()*pack.property().Exp, DecimalRatio(pack.ratio() - 1), pack.property().unit) );
+    {
+        if(pack.ratio() == Uc::Nano)//已经到达最小数量级单位就返回
+            return pack;
+        else
+            return proper( ValuePack(pack.value()*pack.property().Exp, DecimalRatio(pack.ratio() - 1), pack.property().unit) );
+    }
     else
         return pack;
 }
