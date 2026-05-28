@@ -160,30 +160,6 @@ public:
         return *this;
     }
 
-    ///获取数字部分字符串
-    std::string numericalPart(){  return UnitConvertor::numericPart(*this);  }
-
-    ///获取单位部分字符串
-    std::string unitPart(){  return UnitConvertor::unitPart(*this);  }
-
-    ///将ValuePack转换为字符串,不控制格式
-    std::string toString(){  return UnitConvertor::toString(*this);  }
-
-    ///将ValuePack转换为字符串,当fixedDecimal为true时精确到小数点后precision位,否则位保留precision位有效数字
-    std::string toFormatString(int precision,bool fixedDecimal = true){  return UnitConvertor::toFormatString(*this,precision,fixedDecimal);  }
-
-    ///将ValuePack转换为字符串同时确保整数部分和小数部分长度固定,长度不足时填充给定字符
-    std::string toFormatString(int totalLeng,int decimalLen,char fill = '0'){  return UnitConvertor::toFormatString(*this,totalLeng,decimalLen,fill);  }
-
-    ///将ValuePack转换为科学计数法的字符串,不控制格式
-    std::string toScientificString(){  return UnitConvertor::toScientificString(*this);  }
-
-    ///将ValuePack转换为科学计数法的字符串,小数点后面保留precision位
-    std::string toScientificString(int precision){  return UnitConvertor::toScientificString(*this,precision);  }
-
-    ///将ValuePack转换为整数
-    long long toInt(){  return UnitConvertor::toInt(*this);  }
-
     void setValue(double value) noexcept {  this->m_Value = value; }
 
     double value() const noexcept{  return this->m_Value;  }
