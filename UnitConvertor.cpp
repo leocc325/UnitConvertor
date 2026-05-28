@@ -344,3 +344,123 @@ long long UnitConvertor::toInt(const ValuePack& pack)
 {
     return std::llround(pack.value());
 }
+
+ValuePack::ValuePack(){}
+
+ValuePack::ValuePack(double value, UnitConvertor::DecimalRatio ratio, UnitConvertor::DecimalUnit unit)
+{
+    this->m_Value = value;
+    this->m_Ratio = UnitConvertor::limitRatio(unit,ratio);
+    this->m_Property = UnitConvertor::generateUnitProperty(unit);
+}
+
+ValuePack ValuePack::operator +(const ValuePack &pack) const noexcept
+{
+    ValuePack tmpPack{};
+    if(pack.m_Property.unit == this->m_Property.unit)
+    {
+        tmpPack = UnitConvertor::ratioTo(pack,this->m_Ratio);
+        return ValuePack(this->m_Value + tmpPack.m_Value,this->m_Ratio,this->m_Property.unit);
+    }
+    return tmpPack;
+}
+
+ValuePack ValuePack::operator - (const ValuePack &pack) const noexcept
+{
+    ValuePack tmpPack{};
+    if(pack.m_Property.unit == this->m_Property.unit)
+    {
+        tmpPack = UnitConvertor::ratioTo(pack,this->m_Ratio);
+        return ValuePack(this->m_Value - tmpPack.m_Value,this->m_Ratio,this->m_Property.unit);
+    }
+    return tmpPack;
+}
+
+bool ValuePack::operator == (const ValuePack &other) const
+{
+    return std::abs(this->m_Value - other.m_Value) < 1e-10
+           &&this->m_Ratio == other.m_Ratio
+           && this->m_Property.unit == other.m_Property.unit;
+}
+
+bool ValuePack::operator != (const ValuePack &other) const
+{
+    return !(*this == other);
+}
+
+bool ValuePack::operator > (const ValuePack &other) const noexcept
+{
+    if(this->unit() == other.unit())
+        return !(*this <= other);
+    else
+        return false;
+}
+
+bool ValuePack::operator < (const ValuePack &other) const noexcept
+{
+    if(this->unit() == other.unit())
+        return !(*this >= other);
+    else
+        return false;
+}
+
+bool ValuePack::operator >= (const ValuePack &other) const noexcept
+{
+    if(this->unit() == other.unit())
+    {
+        if(this->m_Ratio == other.ratio())
+            return this->m_Value >= other.m_Value;
+        else
+            return Uc::ratioTo(*this,Uc::One).m_Value >= Uc::ratioTo(other,Uc::One).m_Value;
+    }
+    return false;
+}
+
+bool ValuePack::operator <= (const ValuePack &other) const noexcept
+{
+    if(this->unit() == other.unit())
+    {
+        if(this->m_Ratio == other.ratio())
+            return this->m_Value <= other.m_Value;
+        else
+            return Uc::ratioTo(*this,Uc::One).m_Value <= Uc::ratioTo(other,Uc::One).m_Value;
+    }
+    return false;
+}
+
+ValuePack &ValuePack::ratioTo(UnitConvertor::DecimalRatio newRatio)
+{
+    *this = UnitConvertor::ratioTo(*this,newRatio);
+    return *this;
+}
+
+ValuePack &ValuePack::proper()
+{
+    *this = UnitConvertor::proper(*this);
+    return *this;
+}
+
+void ValuePack::setValue(double value) noexcept
+{
+    this->m_Value = value;
+}
+
+double ValuePack::value() const noexcept
+{
+    return this->m_Value;
+}
+
+DecimalRatio ValuePack::ratio() const noexcept
+{
+    return this->m_Ratio;
+}
+
+DecimalUnit ValuePack::unit() const noexcept
+{
+    return this->m_Property.unit;
+}
+
+UnitProperty ValuePack::property() const noexcept
+{
+    return this->m_Property;
+}

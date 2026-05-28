@@ -77,14 +77,9 @@ class ValuePack
 {
     //这个类只有数值成员变量,无需自定义拷贝和移动函数,太懒了不想重载+=、-=、*=、/=这些运算符,有需要的时候再加
 public:
-    ValuePack(){}
+    ValuePack();
 
-    ValuePack(double value,UnitConvertor::DecimalRatio ratio,UnitConvertor::DecimalUnit unit)
-    {
-        this->m_Value = value;
-        this->m_Ratio = UnitConvertor::limitRatio(unit,ratio);
-        this->m_Property = UnitConvertor::generateUnitProperty(unit);
-    }
+    ValuePack(double value,UnitConvertor::DecimalRatio ratio,UnitConvertor::DecimalUnit unit);
 
     ///可以直接与数值类型变量相加
     template<typename T>
@@ -111,64 +106,37 @@ public:
         return ValuePack(this->m_Value*value, this->ratio(), this->m_Property.unit);
     }
 
-    ///只有单位类型一致的变量可以互相加,相加之后数量级以当前对象为准,如果单位不一致返回一个缺省的对象
-    ValuePack operator + (const ValuePack& pack) const noexcept
-    {
-        ValuePack tmpPack{};
-        if(pack.m_Property.unit == this->m_Property.unit)
-        {
-            tmpPack = UnitConvertor::ratioTo(pack,this->m_Ratio);
-            return ValuePack(this->m_Value + tmpPack.m_Value,this->m_Ratio,this->m_Property.unit);
-        }
-        return tmpPack;
-    }
+    ValuePack operator + (const ValuePack& pack) const noexcept;
 
-    ///只有单位类型一致的变量可以互相减,相减之后数量级以当前对象为准,如果单位不一致返回一个缺省的对象
-    ValuePack operator - (const ValuePack& pack) const noexcept
-    {
-        ValuePack tmpPack{};
-        if(pack.m_Property.unit == this->m_Property.unit)
-        {
-            tmpPack = UnitConvertor::ratioTo(pack,this->m_Ratio);
-            return ValuePack(this->m_Value - tmpPack.m_Value,this->m_Ratio,this->m_Property.unit);
-        }
-        return tmpPack;
-    }
+    ValuePack operator - (const ValuePack& pack) const noexcept;
 
     operator double() const noexcept {  return m_Value;  }
 
-    bool operator == (const ValuePack& other) const noexcept
-    {
-        return std::abs(this->m_Value - other.m_Value) < 1e-10
-            &&this->m_Ratio == other.m_Ratio
-            && this->m_Property.unit == other.m_Property.unit;
-    }
+    bool operator == (const ValuePack& other) const;
 
-    bool operator != (const ValuePack& other) const noexcept{ return !(*this == other); }
+    bool operator != (const ValuePack& other) const;
 
-    ///将当前数据的数量级转换为newRatio表示的数据
-    ValuePack& ratioTo(UnitConvertor::DecimalRatio newRatio)
-    {
-        *this = UnitConvertor::ratioTo(*this,newRatio);
-        return *this;
-    }
+    bool operator > (const ValuePack& other) const noexcept;
 
-    ///将数值自动转换为一个恰当单位表示的数值(1～999之间的值)
-    ValuePack& proper()
-    {
-        *this = UnitConvertor::proper(*this);
-        return *this;
-    }
+    bool operator < (const ValuePack& other) const noexcept;
 
-    void setValue(double value) noexcept {  this->m_Value = value; }
+    bool operator >= (const ValuePack& other) const noexcept;
 
-    double value() const noexcept{  return this->m_Value;  }
+    bool operator <= (const ValuePack& other) const noexcept;
 
-    UnitConvertor::DecimalRatio ratio() const noexcept{  return this->m_Ratio;  }
+    ValuePack& ratioTo(UnitConvertor::DecimalRatio newRatio);
 
-    UnitConvertor::DecimalUnit unit() const noexcept{  return this->m_Property.unit;  }
+    ValuePack& proper();
 
-    UnitProperty property() const noexcept{  return this->m_Property;  }
+    void setValue(double value) noexcept;
+
+    double value() const noexcept;
+
+    UnitConvertor::DecimalRatio ratio() const noexcept;
+
+    UnitConvertor::DecimalUnit unit() const noexcept;
+
+    UnitProperty property() const noexcept;
 
 private:
     double m_Value = 0;
